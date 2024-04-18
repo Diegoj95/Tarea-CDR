@@ -17,7 +17,7 @@ vector<vector<char>> inicializarTablero() {
     return vector<vector<char>>(FILAS, vector<char>(COLUMNAS, ' '));
 }
 
-// Función para imprimir el tablero
+// Función para imprimir el tablero en el servidor
 void imprimirTablero(const vector<vector<char>>& tablero) {
     for (int i = 0; i < FILAS; i++) {
         for (int j = 0; j < COLUMNAS; j++) {
@@ -28,13 +28,27 @@ void imprimirTablero(const vector<vector<char>>& tablero) {
     cout << endl;
 }
 
+// Convierte el estado del tablero a un string para enviarlo al cliente
+string tableroToString(const vector<vector<char>>& tablero) {
+    string estado;
+    for (const auto& fila : tablero) {
+        for (char c : fila) {
+            estado.push_back(c == ' ' ? '.' : c);
+            estado.push_back(' ');
+        }
+        estado += '\n';
+    }
+    return estado;
+}
+
 // Función para verificar si una jugada es válida
 bool esJugadaValida(int columna, const vector<vector<char>>& tablero) {
-    return tablero[0][columna] == ' ';
+    return columna >= 0 && columna < COLUMNAS && tablero[0][columna] == ' ';
 }
 
 // Función para aplicar la jugada
 bool aplicarJugada(int columna, char jugador, vector<vector<char>>& tablero) {
+    if (!esJugadaValida(columna, tablero)) return false;
     for (int i = FILAS - 1; i >= 0; i--) {
         if (tablero[i][columna] == ' ') {
             tablero[i][columna] = jugador;
@@ -109,19 +123,18 @@ void* jugar(void* arg) {
         if (n_bytes <= 0) break;
 
         int columna = atoi(buffer);
-        if (!esJugadaValida(columna, tablero)) {
+        if (!aplicarJugada(columna, 'X', tablero)) {
             const char* msg = "Movimiento no válido\n";
             send(socket_cliente, msg, strlen(msg), 0);
-            continue;
-        }
-
-        aplicarJugada(columna, 'X', tablero);
-        imprimirTablero(tablero);
-
-        if (verificarGanador('X', tablero)) {
-            const char* msg = "¡Ganaste!\n";
-            send(socket_cliente, msg, strlen(msg), 0);
-            break;
+        } else {
+            string tableroEstado = tableroToString(tablero);
+            send(socket_cliente, tableroEstado.c_str(), tableroEstado.length(), 0);
+            imprimirTablero(tablero);
+            if (verificarGanador('X', tablero)) {
+                const char* msg = "¡Ganaste!\n";
+                send(socket_cliente, msg, strlen(msg), 0);
+                break;
+            }
         }
     }
 
