@@ -59,11 +59,14 @@ int main(int argc, char *argv[]) {
         valread = read(sock, buffer, 1024);
         if (valread > 0) {
             buffer[valread] = '\0'; // Asegurar terminación
-            cout << "Respuesta del servidor: " << buffer << endl;
+            cout << "Respuesta del servidor: \n" << buffer << endl;
         } else {
             cout << "Error de lectura o servidor desconectado." << endl;
             break;
         }
+        
+        // Limpiar el búfer después de cada lectura
+        memset(buffer, 0, 1024);
     }
 
     close(sock);
