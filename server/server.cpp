@@ -115,7 +115,9 @@ void* jugar(void* arg) {
     vector<vector<char>> tablero = inicializarTablero();
     char buffer[1024];
 
-    while (true) {
+    bool game_over = false;  // Flag para indicar el fin del juego
+
+    while (!game_over) {
         memset(buffer, 0, 1024);
         int n_bytes = recv(socket_cliente, buffer, 1024, 0);
         if (n_bytes <= 0) break;
@@ -132,19 +134,22 @@ void* jugar(void* arg) {
             if (verificarGanador('C', tablero)) {
                 ss << "¡El cliente ha ganado!\n";
                 cout << "Juego [" << ip << ":" << ntohs(direccionCliente.sin_port) << "]: ¡El cliente ha ganado!\n";
+                game_over = true;
             } else {
                 if (jugarServidor(tablero, ip, ntohs(direccionCliente.sin_port), ss)) {
                     if (verificarGanador('S', tablero)) {
                         ss << "¡El servidor ha ganado!\n";
                         cout << "Juego [" << ip << ":" << ntohs(direccionCliente.sin_port) << "]: ¡El servidor ha ganado!\n";
+                        game_over = true;
                     }
                 }
             }
         }
-        // Enviar el mensaje acumulado, que incluye la jugada del servidor y el estado del tablero
+        // Enviar el mensaje acumulado al cliente
         send(socket_cliente, ss.str().c_str(), ss.str().length(), 0);
     }
 
+    cout << "Fin del juego para [" << ip << ":" << ntohs(direccionCliente.sin_port) << "]" << endl;
     close(socket_cliente);
     delete (int*)arg;
     return NULL;
