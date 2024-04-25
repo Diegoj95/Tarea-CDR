@@ -102,15 +102,55 @@ public:
         return false; // Si no se encontraron 4 en línea, retornar falso.
     }
 
-    bool jugarServidor(int& columna_jugada) {
-        for (int columna = 1; columna <= COLUMNAS; columna++) {
-            if (aplicarJugada(columna, 'S')) {
+bool jugarServidor(int& columna_jugada) {
+    // Primero, intenta encontrar una jugada ganadora para el servidor
+    for (int columna = 1; columna <= COLUMNAS; columna++) {
+        if (esJugadaValida(columna)) {
+            aplicarJugada(columna, 'S'); // Prueba jugando en la columna
+            if (verificarGanador('S')) {
+                columna_jugada = columna; // Si es una jugada ganadora, juega aquí
+                return true;
+            }
+            // Deshacer la jugada si no es ganadora
+            removerJugada(columna);
+        }
+    }
+
+    // Segundo, intenta bloquear al jugador de ganar en su próximo movimiento
+    for (int columna = 1; columna <= COLUMNAS; columna++) {
+        if (esJugadaValida(columna)) {
+            aplicarJugada(columna, 'C'); // Prueba jugando como el jugador
+            if (verificarGanador('C')) {
+                removerJugada(columna); // Deshacer la jugada de prueba
+                aplicarJugada(columna, 'S'); // Bloquear al jugador
                 columna_jugada = columna;
                 return true;
             }
+            removerJugada(columna); // Deshacer la jugada de prueba
         }
-        return false;
     }
+
+    // Si no hay jugadas ganadoras o bloqueos necesarios, elige la primera disponible
+    for (int columna = 1; columna <= COLUMNAS; columna++) {
+        if (esJugadaValida(columna) && aplicarJugada(columna, 'S')) {
+            columna_jugada = columna;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void removerJugada(int columna) {
+    int columnaIndex = columna - 1;
+    for (int i = 0; i < FILAS; i++) {
+        if (tablero[i][columnaIndex] != ' ') {
+            tablero[i][columnaIndex] = ' ';
+            break;
+        }
+    }
+}
+
 };
 
 class Server {
