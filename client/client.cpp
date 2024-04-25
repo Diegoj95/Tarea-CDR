@@ -13,6 +13,7 @@ private:
     struct sockaddr_in serv_addr;
 
 public:
+    // Constructor del cliente que inicializa la conexión al servidor
     Cliente(const char* ip, int puerto) {
         sock = socket(AF_INET, SOCK_STREAM, 0);
         if (sock < 0) {
@@ -28,6 +29,7 @@ public:
             exit(1);
         }
 
+        // Establece la conexión con el servidor
         if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
             cerr << "Conexión fallida." << endl;
             exit(1);
@@ -38,6 +40,7 @@ public:
         close(sock);
     }
 
+    // Función principal que maneja el juego
     void jugar() {
         cout << "Conectado al servidor.\n\n";
 
@@ -74,11 +77,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    const char* ip = argv[1];
+    const char* ip = argv[1]; // Dirección IP del servidor
     int puerto = atoi(argv[2]);
 
-    Cliente cliente(ip, puerto);
-    cliente.jugar();
+    Cliente cliente(ip, puerto); // Puerto del servidor
+    cliente.jugar(); // Inicia el juego
 
     return 0;
 }

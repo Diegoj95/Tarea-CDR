@@ -16,6 +16,7 @@ private:
     const int COLUMNAS = 7;
 
 public:
+    // Inicializar el tablero
     Juego() {
         tablero = vector<vector<char>>(FILAS, vector<char>(COLUMNAS, ' '));
     }
@@ -41,6 +42,7 @@ public:
         return ss.str();
     }
 
+    // Verificar jugadas antes de realizarlas
     bool esJugadaValida(int columna) {
         int columnaIndex = columna - 1;
         return columnaIndex >= 0 && columnaIndex < COLUMNAS && tablero[0][columnaIndex] == ' ';
@@ -58,6 +60,7 @@ public:
         return false;
     }
 
+    // Revisa si existe 4 en línea
     bool verificarGanador(char jugador) {
         // Verificación horizontal
         for (int i = 0; i < FILAS; i++) {
@@ -99,34 +102,33 @@ public:
             }
         }
 
-        return false; // Si no se encontraron 4 en línea, retornar falso.
+        return false;
     }
 
 bool jugarServidor(int& columna_jugada) {
-    // Primero, intenta encontrar una jugada ganadora para el servidor
+    // Buscar una jugada ganadora para el servidor
     for (int columna = 1; columna <= COLUMNAS; columna++) {
         if (esJugadaValida(columna)) {
-            aplicarJugada(columna, 'S'); // Prueba jugando en la columna
+            aplicarJugada(columna, 'S');
             if (verificarGanador('S')) {
-                columna_jugada = columna; // Si es una jugada ganadora, juega aquí
+                columna_jugada = columna; // Si es una jugada ganadora, se realiza
                 return true;
             }
-            // Deshacer la jugada si no es ganadora
             removerJugada(columna);
         }
     }
 
-    // Segundo, intenta bloquear al jugador de ganar en su próximo movimiento
+    // Intenta bloquear al jugador de ganar en su próximo movimiento
     for (int columna = 1; columna <= COLUMNAS; columna++) {
         if (esJugadaValida(columna)) {
-            aplicarJugada(columna, 'C'); // Prueba jugando como el jugador
+            aplicarJugada(columna, 'C');
             if (verificarGanador('C')) {
-                removerJugada(columna); // Deshacer la jugada de prueba
+                removerJugada(columna);
                 aplicarJugada(columna, 'S'); // Bloquear al jugador
                 columna_jugada = columna;
                 return true;
             }
-            removerJugada(columna); // Deshacer la jugada de prueba
+            removerJugada(columna);
         }
     }
 
@@ -160,6 +162,7 @@ private:
 
 public:
     Server(int puerto) {
+        // Creación del socket para el servidor
         socket_servidor = socket(AF_INET, SOCK_STREAM, 0);
         if (socket_servidor < 0) {
             cerr << "Error al crear el socket.\n";
@@ -171,11 +174,13 @@ public:
         direccionServidor.sin_addr.s_addr = htonl(INADDR_ANY);
         direccionServidor.sin_port = htons(puerto);
 
+        // Asociación del socket con una dirección y un puerto
         if (bind(socket_servidor, (struct sockaddr *)&direccionServidor, sizeof(direccionServidor)) < 0) {
             cerr << "Error en bind().\n";
             exit(1);
         }
 
+        // Establecer el socket para escuchar conexiones
         if (listen(socket_servidor, 10) < 0) {
             cerr << "Error en listen().\n";
             exit(1);
@@ -185,7 +190,8 @@ public:
     ~Server() {
         close(socket_servidor);
     }
-
+    
+    // Acepta conexiones de clientes y crea hilos para manejar varios juegos
     void aceptarClientes() {
         cout << "Servidor esperando conexiones...\n";
         while (true) {
@@ -212,6 +218,7 @@ public:
         }
     }
 
+    //Interacción con el cliente y comunicación del estado del juego
     static void* jugar(void* arg) {
         int socket_cliente = *((int*)arg);
         Juego juego;
