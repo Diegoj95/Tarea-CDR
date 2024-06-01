@@ -45,7 +45,7 @@ Ejecución:
 4. Luego, ejecute el programa proporcionando la ip del servidor (ver en ifconfig) luego del puerto utilizado anteriormente:
    
    ```bash
-   ./server <ip> <puerto>
+   ./client <ip> <puerto>
    
 
 ## Ejemplo
